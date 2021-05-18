@@ -26,7 +26,11 @@ solve_system_save(lorenz, @SVector[1.0,0.0,0.0], p, 1000)
 @btime solve_system_save(lorenz, @SVector[1.0,0.0,0.0], p, 1000)
 
 #=
-This is so much faster. This is utilizing a lot more optimizations, like SIMD, automatically, which is helpful. Let's also remove the bounds checks:
+This is so much faster. This is utilizing a lot more optimizations, like SIMD, automatically, which is helpful. 
+
+A vector of static arrays is equivalent to a matrix.
+
+Let's also remove the bounds checks:
 =#
 
 function lorenz(u,p)
