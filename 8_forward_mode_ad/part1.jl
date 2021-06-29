@@ -1,3 +1,4 @@
+using Base: Forward
 struct Dual{T}
     val::T
     der::T
@@ -101,3 +102,42 @@ newton(Dual(2.0,1.0))
 #=
 Higher dimensions
 =#
+using StaticArrays
+
+struct MultiDual{N,T}
+    val::T
+    derivs::SVector{N,T}
+end
+
+import Base: +, *
+
+function +(f::MultiDual{N,T}, g::MultiDual{N,T}) where {N,T}
+    return MultiDual{N,T}(f.val + g.val, f.derivs + g.derivs)
+end
+
+function *(f::MultiDual{N,T}, g::MultiDual{N,T}) where {N,T}
+    return MultiDual{N,T}(f.val * g.val, f.val .* g.derivs + g.val .* f.derivs)
+end
+
+gg(x,y) = x*x*y + x + y
+a, b = (1.0, 2.0)
+
+xx = MultiDual(a, SVector(1.0, 0.0))
+yy = MultiDual(b, SVector(0.0, 1.0))
+gg(xx, yy)
+
+#=
+Note that the above approach was designed keeping in mind functions of kind R^n -> R. But we can use it to calculate the Jacobian for any function R^n -> R^m:
+=#
+
+ff(x, y) = SVector(x*x + y*y, x + y)
+ff(xx,yy)
+
+#=
+It would be possible (and better for performance in many cases) to store all of the partials in a matrix instead.
+
+Forward-mode AD is implemented in a clean and efficient way in the `ForwardDiff.jl` package:
+=#
+using ForwardDiff, StaticArrays
+
+ForwardDiff.gradient( xx -> ( (x,y) = xx; x^2*y + x*y), [1,2])
